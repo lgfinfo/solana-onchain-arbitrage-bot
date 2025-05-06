@@ -12,6 +12,6 @@ cpi = ["no-entrypoint"]
 anchor-gen = { git = "https://github.com/OliverNChalk/anchor-gen" }
 anchor-lang = "0.29.0"
 hexlit = "0.5.5"
-
+solana-program = "1.17"
 [package.metadata.cargo-machete]
 ignored = ["anchor-lang"]
