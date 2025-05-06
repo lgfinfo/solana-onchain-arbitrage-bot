@@ -1,6 +1,11 @@
+#![cfg_attr(feature = "no-entrypoint", allow(dead_code))]
 use anchor_gen::generate_cpi_crate;
+#[cfg(not(feature = "no-entrypoint"))]
+use anchor_lang::prelude::*;
 
 generate_cpi_crate!("./idl.json");
+
+#[cfg(not(feature = "no-entrypoint"))]
 declare_id!("24Uqj9JCLxUeoC3hGfh5W3s9FM9uCHDS2SG3LYwBpyTi");
 
 pub const LOCKED_PROFIT_DEGRADATION_DENOMINATOR: u128 = 1_000_000_000_000;

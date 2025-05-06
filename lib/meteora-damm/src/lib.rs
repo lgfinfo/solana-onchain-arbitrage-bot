@@ -1,7 +1,12 @@
+#![cfg_attr(feature = "no-entrypoint", allow(dead_code))]
 use anchor_gen::generate_cpi_crate;
+#[cfg(not(feature = "no-entrypoint"))]
+use anchor_lang::prelude::*;
 use hexlit::hex;
 
 generate_cpi_crate!("./idl.json");
+
+#[cfg(not(feature = "no-entrypoint"))]
 declare_id!("Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB");
 
 pub fn encode_swap(amount_in: u64, min_amount_out: u64) -> Vec<u8> {
