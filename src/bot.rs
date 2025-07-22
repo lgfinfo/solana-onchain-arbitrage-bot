@@ -20,7 +20,9 @@ use solana_sdk::{
     address_lookup_table::state::AddressLookupTable, compute_budget::ComputeBudgetInstruction,
 };
 // use cate::pools::*;
-use spl_associated_token_account::get_associated_token_address;
+use spl_associated_token_account::{
+    get_associated_token_address, get_associated_token_address_with_program_id,
+};
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -61,9 +63,15 @@ pub async fn run_bot(config_path: &str) -> anyhow::Result<()> {
     });
 
     for mint_config in &config.routing.mint_config_list {
-        let wallet_token_account = get_associated_token_address(
+        // Get the mint account info to check owner
+        let mint_owner = rpc_client
+            .get_account(&Pubkey::from_str(&mint_config.mint).unwrap())
+            .unwrap()
+            .owner;
+        let wallet_token_account = get_associated_token_address_with_program_id(
             &wallet_kp.pubkey(),
             &Pubkey::from_str(&mint_config.mint).unwrap(),
+            &mint_owner,
         );
 
         println!("   Token mint: {}", mint_config.mint);
@@ -134,6 +142,7 @@ pub async fn run_bot(config_path: &str) -> anyhow::Result<()> {
             mint_config.meteora_damm_pool_list.as_ref(),
             mint_config.solfi_pool_list.as_ref(),
             mint_config.meteora_damm_v2_pool_list.as_ref(),
+            mint_config.vertigo_pool_list.as_ref(),
             rpc_client.clone(), // Clone the Arc<RpcClient> to avoid moving it
         )
         .await?;

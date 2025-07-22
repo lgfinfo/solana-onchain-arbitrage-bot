@@ -4,13 +4,13 @@
 
 A simple Solana onchain arbitrage bot for arbitrage opportunities. This bot calculate the most optimal trade size between various DEX pools on Solana and executes trades when profitable opportunities are found. This repository utilizes the onchain program for executing arbitrage trades.
 
-This is a demo bot to show how to parse each pool and call the onchain program.
+**This is a demo bot to show how to parse each pool and call the onchain program.**
+**This is NOT a fully functional bot. This is only recommanded for advanced users to use as a reference.**
+**For new users please use the full featured bot to get started:**
+**https://docs.solanamevbot.com/home/onchain-bot/getting-started**
 
 Full documentation for the onchain program:
 https://docs.solanamevbot.com/home/onchain-bot/onchain-program
-
-Full functional bot:
-https://docs.solanamevbot.com/home/onchain-bot/getting-started
 
 Example transaction:
 https://solscan.io/tx/2JtgbXAgwPib9L5Ruc5vLhQ5qeX5EMhVDQbcCaAYVJKpEFn22ArEqXhipu5fFyhrEwosiHWzRUhWispJUCYyAnKT
@@ -34,7 +34,10 @@ https://solscan.io/account/MEViEnscUm6tsQRoGd9h6nLQaQspKj7DB2M5FwM3Xvz
 - Raydium CLMM
 - Meteora DLMM
 - Meteora Dynamic AMM
+- Meteora DAMM V2
 - Orca Whirlpool
+- SolFi
+- Vertigo
 
 ## Getting Started
 
@@ -87,10 +90,13 @@ https://solscan.io/account/MEViEnscUm6tsQRoGd9h6nLQaQspKj7DB2M5FwM3Xvz
   - `raydium_pool_list`: List of Raydium pool addresses
   - `meteora_damm_pool_list`: List of Meteora Dynamic AMM pool addresses
   - `meteora_dlmm_pool_list`: List of Meteora DLMM pool addresses
+  - `meteora_damm_v2_pool_list`: List of Meteora DAMM V2 pool addresses
   - `raydium_cp_pool_list`: List of Raydium CP pool addresses
   - `pump_pool_list`: List of Pump pool addresses
   - `whirlpool_pool_list`: List of Whirlpool pool addresses
   - `raydium_clmm_pool_list`: List of Raydium CLMM pool addresses
+  - `solfi_pool_list`: List of Solfi pool addresses
+  - `vertigo_pool_list`: List of Vertigo pool addresses
   - `lookup_table_accounts`: List of lookup table accounts
   - `process_delay`: Process delay in milliseconds
 
