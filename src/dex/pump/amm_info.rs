@@ -33,7 +33,7 @@ impl PumpAmmInfo {
         let coin_creator = if data.len() < 257 {
             Pubkey::default()
         } else {
-            Pubkey::new(&data[168..200])
+            Pubkey::try_from(&data[168..200])?
         };
         let key = Pubkey::find_program_address(
             &[b"creator_vault", coin_creator.as_ref()],

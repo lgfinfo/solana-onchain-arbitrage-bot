@@ -1,4 +1,12 @@
 use crate::config::Config;
+use crate::dex::meteora::{constants::dlmm_program_id, dlmm_info::DlmmInfo};
+use crate::dex::raydium::{
+    get_tick_array_pubkeys, raydium_clmm_program_id,
+    PoolState
+};
+use crate::dex::whirlpool::{
+    constants::whirlpool_program_id, state::Whirlpool, update_tick_array_accounts_for_onchain,
+};
 use crate::refresh::initialize_pool_data;
 use crate::transaction::build_and_send_transaction;
 use anyhow::Context;
@@ -11,13 +19,13 @@ use solana_sdk::signer::Signer;
 use solana_sdk::{
     address_lookup_table::state::AddressLookupTable, compute_budget::ComputeBudgetInstruction,
 };
+// use cate::pools::*;
 use spl_associated_token_account::get_associated_token_address;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
 use tracing::{error, info, warn};
-
 pub async fn run_bot(config_path: &str) -> anyhow::Result<()> {
     let config = Config::load(config_path)?;
     info!("Configuration loaded successfully");
@@ -126,13 +134,137 @@ pub async fn run_bot(config_path: &str) -> anyhow::Result<()> {
             mint_config.meteora_damm_pool_list.as_ref(),
             mint_config.solfi_pool_list.as_ref(),
             mint_config.meteora_damm_v2_pool_list.as_ref(),
-            rpc_client.clone(),
+            rpc_client.clone(), // Clone the Arc<RpcClient> to avoid moving it
         )
         .await?;
 
         let mint_pool_data = Arc::new(Mutex::new(pool_data));
-
         // TODO: Add logic to periodically refresh pool data
+        let mint_pool_data_clone = mint_pool_data.clone();
+        let rpc_client_clone= rpc_client.clone();
+        tokio::spawn(async move {
+            let refresh_interval = Duration::from_secs(5); // 每 5 秒刷新一次
+            loop {
+                let mut guard = mint_pool_data_clone.lock().await;
+
+                // 更新 Raydium CLMM 缓存
+
+                for clmm_pool in guard.raydium_clmm_pools.iter_mut() {
+                    match rpc_client_clone.get_account(&clmm_pool.pool) {
+                        Ok(account) => {
+                            if account.owner == raydium_clmm_program_id() {
+                                match PoolState::load_checked(&account.data) {
+                                    Ok(raydium_clmm) => {
+                                        let tick_array_pubkeys = get_tick_array_pubkeys(
+                                            &clmm_pool.pool,
+                                            raydium_clmm.tick_current,
+                                            raydium_clmm.tick_spacing,
+                                            &[-1, 0, 1],
+                                            &raydium_clmm_program_id(),
+                                        )
+                                        .unwrap();
+                                      
+                                        clmm_pool.tick_arrays = tick_array_pubkeys;
+                                        info!(
+                                            "freshing Raydium CLMM pool {:?} with tick arrays",
+                                            clmm_pool.pool
+                                        );
+                                    }
+                                    Err(e) => {
+                                        error!(
+                                            "Failed to load Raydium CLMM pool {}: {:?}",
+                                            clmm_pool.pool, e
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            error!(
+                                "Failed to fetch Raydium CLMM pool {}: {:?}",
+                                clmm_pool.pool, e
+                            );
+                        }
+                    }
+                }
+
+                // 更新 Meteora DLMM 缓存
+                for dlmm_pool in guard.dlmm_pairs.iter_mut() {
+                    match rpc_client_clone.get_account(&dlmm_pool.pair) {
+                        Ok(account) => {
+                            if account.owner == dlmm_program_id() {
+                                match DlmmInfo::load_checked(&account.data) {
+                                    Ok(dlmm_info) => {
+                                        let bin_arrays = dlmm_info
+                                            .calculate_bin_arrays(&dlmm_pool.pair)
+                                            .unwrap_or_default();
+                                        dlmm_pool.bin_arrays = bin_arrays;
+                                        info!(
+                                            "freshing Meteora DLMM pool {:?} with bin arrays",
+                                            dlmm_pool.pair
+                                        );
+                                    }
+                                    Err(e) => {
+                                        error!(
+                                            "Failed to load DLMM pool {:?}: {:?}",
+                                            dlmm_pool.pair, e
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            error!("Failed to fetch DLMM pool {}: {:?}", dlmm_pool.pair, e);
+                        }
+                    }
+                }
+
+                // 更新 Whirlpool 缓存
+
+                for whirlpool_pool in guard.whirlpool_pools.iter_mut() {
+                    match rpc_client_clone.get_account(&whirlpool_pool.pool) {
+                        Ok(account) => {
+                            if account.owner == whirlpool_program_id() {
+                                match Whirlpool::try_deserialize(&account.data) {
+                                    Ok(whirlpool) => {
+                                        let tick_array_pubkeys_account =
+                                            update_tick_array_accounts_for_onchain(
+                                                &whirlpool,
+                                                &whirlpool_pool.pool,
+                                                &whirlpool_program_id(),
+                                            );
+                                        let tick_array_pubkeys: Vec<Pubkey> = tick_array_pubkeys_account
+                                            .iter()
+                                            .map(|meta| meta.pubkey)
+                                            .collect();
+                                        whirlpool_pool.tick_arrays = tick_array_pubkeys;
+                                        info!(
+                                            "freshing whirlpool_pool {:?} with  tick arrays",
+                                            whirlpool_pool.pool
+                                        );
+                                    }
+                                    Err(e) => {
+                                        error!(
+                                            "Failed to load Whirlpool pool {:?}: {:?}",
+                                            whirlpool_pool.pool, e
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            error!(
+                                "Failed to fetch Whirlpool pool {:?}: {:?}",
+                                whirlpool_pool.pool, e
+                            );
+                        }
+                    }
+                }
+
+                drop(guard); // 释放锁
+                tokio::time::sleep(refresh_interval).await;
+            }
+        });
 
         let config_clone = config.clone();
         let mint_config_clone = mint_config.clone();

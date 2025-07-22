@@ -1,7 +1,11 @@
 use crate::dex::meteora::constants::{dlmm_program_id, BIN_ARRAY};
 use anyhow::Result;
 use solana_program::pubkey::Pubkey;
-use std::mem::size_of;
+// use std::mem::size_of;
+use core::mem::size_of;
+use core::ptr::read_unaligned;
+
+
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
@@ -105,9 +109,11 @@ impl DlmmInfo {
         let raw_lb_pair = &data[8..8 + size_of::<LbPair>()];
 
         let lb_pair: LbPair = unsafe {
-            assert!(raw_lb_pair.len() >= std::mem::size_of::<LbPair>());
-            std::ptr::read_unaligned(raw_lb_pair.as_ptr() as *const LbPair)
+            assert!(raw_lb_pair.len() >= size_of::<LbPair>());
+            read_unaligned(raw_lb_pair.as_ptr() as *const LbPair)
         };
+        // let lb_pair: LbPair=bytemuck::try_pod_read_unaligned(raw_lb_pair)?;
+
 
         Ok(Self {
             token_x_mint: lb_pair.token_x_mint,
@@ -179,7 +185,7 @@ impl LbPair {
             return Err(anyhow::anyhow!("Data is too small for LbPair"));
         }
 
-        let lb_pair = unsafe { std::ptr::read_unaligned(data.as_ptr() as *const LbPair) };
+        let lb_pair = unsafe { core::ptr::read_unaligned(data.as_ptr() as *const LbPair) };
 
         Ok(lb_pair)
     }

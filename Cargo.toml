@@ -49,3 +49,14 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 meteora-damm-cpi = { path = "lib/meteora-damm", features = ["no-entrypoint"] }
 meteora-vault-cpi = { path = "lib/meteora-vault", features = ["no-entrypoint"] }
+
+# meteora-dlmm-cpi = { path = "lib/meteora-dlmm", features = ["no-entrypoint"] }
+# meteora-damm2-cpi = { path = "lib/meteora-damm2", features = ["no-entrypoint"] }
+
+# raydium-amm-cpi = { path = "lib/raydium-pools", features = ["no-entrypoint"] }
+# raydium-cpmm-cpi = { path = "lib/raydium-cpmm", features = ["no-entrypoint"] }
+# raydium-clmm-cpi = { path = "lib/raydium-clmm", features = ["no-entrypoint"] }
+
+# whirlpool-cpi = { path = "lib/ora-whirlpool", features = ["no-entrypoint"] }
+
+pump-amm-cpi = { path = "lib/pump-amm", features = ["no-entrypoint"] }

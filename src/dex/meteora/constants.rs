@@ -1,5 +1,5 @@
 use solana_program::pubkey::Pubkey;
-use std::str::FromStr;
+use core::str::FromStr;
 
 pub fn dlmm_program_id() -> Pubkey {
     Pubkey::from_str("LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo").unwrap()

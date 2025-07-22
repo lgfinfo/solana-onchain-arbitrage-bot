@@ -20,10 +20,10 @@ impl RaydiumAmmInfo {
             return Err(anyhow::anyhow!("Invalid data length for RaydiumAmmInfo"));
         }
         
-        let coin_vault = Pubkey::new(&data[COIN_VAULT_OFFSET..COIN_VAULT_OFFSET + 32]);
-        let pc_vault = Pubkey::new(&data[PC_VAULT_OFFSET..PC_VAULT_OFFSET + 32]);
-        let coin_mint = Pubkey::new(&data[COIN_MINT_OFFSET..COIN_MINT_OFFSET + 32]);
-        let pc_mint = Pubkey::new(&data[PC_MINT_OFFSET..PC_MINT_OFFSET + 32]);
+        let coin_vault = Pubkey::try_from(&data[COIN_VAULT_OFFSET..COIN_VAULT_OFFSET + 32])?;
+        let pc_vault = Pubkey::try_from(&data[PC_VAULT_OFFSET..PC_VAULT_OFFSET + 32])?;
+        let coin_mint = Pubkey::try_from(&data[COIN_MINT_OFFSET..COIN_MINT_OFFSET + 32])?;
+        let pc_mint = Pubkey::try_from(&data[PC_MINT_OFFSET..PC_MINT_OFFSET + 32])?;
         
         Ok(Self {
             coin_mint,
